@@ -1,0 +1,146 @@
+create database BancoPO
+
+create table Cliente(
+id_cliente int identity (1,1),
+nom_cliente varchar (25),
+apellido varchar (25),
+dni char (8),
+constraint pk_clientes primary key (id_cliente))
+
+create table TipoCuenta(
+id_tipo_cuenta int identity(1,1),
+nom_cuenta varchar (25),
+constraint pk_tipocuentas primary key (id_tipo_cuenta))
+
+create table Cuenta(
+cbu int identity (1000000,12345),
+id_cliente int,
+saldo money,
+id_tipo_cuenta int,
+ultimoMovimiento datetime,
+constraint pk_cuenta primary key (cbu),
+constraint fk_cuenta_tipo foreign key (id_tipo_cuenta) references TipoCuenta (id_tipo_cuenta),
+constraint fk_cuenta_cliente foreign key (id_cliente) references Cliente (id_cliente))
+
+
+------------------------------TIPOS DE CUENTA--------------------------------------
+
+insert into TipoCuenta (nom_cuenta) values ('Caja de ahorro')
+insert into TipoCuenta (nom_cuenta) values ('Plazo fijo')
+insert into TipoCuenta (nom_cuenta) values ('Cuenta corriente')
+insert into TipoCuenta (nom_cuenta) values ('Caja de ahorro en dolares')
+
+----------------------------------CLIENTES-----------------------------------------
+
+insert into Cliente (nom_cliente, apellido, dni) values ('Michael','Scott',33980230)
+insert into Cliente (nom_cliente, apellido, dni) values ('Pepe','Argento',35220309)
+insert into Cliente (nom_cliente, apellido, dni) values ('Ousmane','Dembele',40980222)
+insert into Cliente (nom_cliente, apellido, dni) values ('Kylian','Mbappé',42777356)
+
+
+
+--------------------------------------CUENTA-----------------------------------------
+
+Insert into Cuenta (id_cliente,saldo,id_tipo_cuenta,ultimoMovimiento) values (1,'150000', 4, '11/07/2022')
+Insert into Cuenta (id_cliente,saldo,id_tipo_cuenta,ultimoMovimiento) values (2,'2500', 3, '16/08/2022')
+Insert into Cuenta (id_cliente,saldo,id_tipo_cuenta,ultimoMovimiento) values (3,'32000', 2, '2/05/2022')
+Insert into Cuenta (id_cliente,saldo,id_tipo_cuenta,ultimoMovimiento) values (4,'8000', 1, '1/08/2022')
+
+select * from Cuenta
+-----------------------------------PROCEDURES----------------------------------------
+
+
+create proc spCargarCuenta
+@idCliente int
+as 
+select cbu CBU, saldo SALDO, nom_cuenta 'Tipo de Cuenta', ultimoMovimiento 'Ultimo Movimiento'
+from Cuenta c join TipoCuenta tp on c.id_tipo_cuenta=tp.id_tipo_cuenta
+where @idCliente = id_cliente
+
+exec spCargarCuenta 1
+
+-------------------------------
+
+
+create proc spCargarCliente
+as
+select id_cliente 'ID', nom_cliente +space(1)+ apellido 'Cliente', dni 'DNI'
+from Cliente
+where Activo = 1 
+
+exec  spCargarCliente
+
+
+------------------------------
+
+create proc spBuscarID
+@dni varchar(10)
+as 
+select id_cliente
+from Cliente
+where @dni = dni
+
+
+-----------------------------
+
+Create proc spCargarTipo
+as
+select*
+from TipoCuenta
+
+----------------------------
+create proc spInsertarCliente
+@nom_cliente varchar(25),
+@apellido varchar(25),
+@dni char(8),
+@id_tipo_cuenta int,
+@Activo bit
+as
+insert into Cliente(nom_cliente,apellido,dni,Activo) values (@nom_cliente,@apellido,@dni,1)
+
+
+-----------------------------
+create proc spInsertarCuenta
+@id_cliente int,
+@saldo money,
+@id_tipo_cuenta int
+as
+insert into Cuenta(id_cliente,saldo,id_tipo_cuenta)values (@id_cliente,@saldo,@id_tipo_cuenta)
+
+-----------------------------
+
+create proc spInsertarCuenta2
+@id_cliente int,
+@saldo money,
+@id_tipo_cuenta int
+as
+insert into Cuenta(id_cliente,saldo,id_tipo_cuenta)values (@id_cliente,@saldo,@id_tipo_cuenta)
+
+-------------------------------
+create proc spDarBaja
+@id_cliente int
+as
+update Cliente
+set Activo = 0
+where @id_cliente = id_cliente
+
+--------------------------------
+create proc spDarAlta
+@id_cliente int
+as
+update Cliente
+set Activo = 1
+where @id_cliente = id_cliente
+
+--------------------------------
+create proc spCargarBajas
+as
+select id_cliente 'ID', nom_cliente +space(1)+ apellido 'Cliente', dni 'DNI'
+from Cliente
+where Activo = 0
+---------------------------------------ACTUALIZACIONES BD-----------------------------------
+
+alter table Cliente
+add Activo bit  
+
+select * from Cliente
